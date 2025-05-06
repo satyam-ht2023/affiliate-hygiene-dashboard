@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'export',
   
-  basePath: '/satyam-ht2023.github.io',
+  basePath: '/affiliate-hygiene-dashboard',
   images: {
     unoptimized: true,
   },
