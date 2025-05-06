@@ -24,7 +24,7 @@ function LastRunPage() {
   
     useEffect(() => {
       const domain = searchParams.get('domain') || 'LM';
-      fetch(`http://localhost:5100/api/v1/report/last-run?domain=${domain}`)
+      fetch(`http://10.136.172.151:8090/api/v1/hygiene/report/get-recent?domain=${domain}`)
         .then(res => res.json())
         .then(setData)
         .catch(async () => {
