@@ -2,7 +2,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import PlatformWidget from '@/components/PlatformWidget';
 import "./last-run.css"
@@ -22,7 +22,7 @@ const platforms: Platform[] = [
   'IOS_AMP',
 ];
 
-export default function LastRunPage() {
+function LastRunPage() {
   const searchParams = useSearchParams();
   const domain = (searchParams.get('domain') || 'LM').toUpperCase();
 
@@ -102,5 +102,13 @@ export default function LastRunPage() {
         ))
       )}
     </main>
+  );
+}
+
+export default function LastRunPageWrapper() {
+  return (
+    <Suspense fallback={<div className="loading">Loading results...</div>}>
+      <LastRunPage />
+    </Suspense>
   );
 }
