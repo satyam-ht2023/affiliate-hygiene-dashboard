@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   output: 'export',
   
   basePath: '/affiliate-hygiene-dashboard',
+  assetPrefix: '/affiliate-hygiene-dashboard',
   images: {
     unoptimized: true,
   },
