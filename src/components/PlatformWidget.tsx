@@ -22,7 +22,7 @@ export default function PlatformWidget({ platform, report }: Props) {
     return (
         <div className="widget" id={platform}>
             <h2>
-                <img src={`/${platform}.png`} alt={`${platform} logo`} width={64} height={64} />
+                <img src={`/affiliate-hygiene-dashboard/${platform}.png`} alt={`${platform} logo`} width={64} height={64} />
                 <div>
                     {platform.replace('_', ' ').toLowerCase().replace("amp", "AMP").replace("ios", "iOS")}
                     <div className='date'>{new Date(timestamp).toLocaleString()}</div>
