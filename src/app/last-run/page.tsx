@@ -1,80 +1,106 @@
+// src/app/last-run/page.tsx
 'use client';
-import { Suspense } from 'react';
-import { useEffect, useState } from 'react';
+
 import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Header from '@/components/Header';
+import PlatformWidget from '@/components/PlatformWidget';
+import "./last-run.css"
 
-type Result = {
-  storyURL: string;
-  totalAdUnits: number;
-  totalSingleCards: number;
-  totalMultiProductCarousel: number;
-  topWidgetCardsNotRendered: { productId: string; cardNumber: number }[];
-  singleCardsNotRendered: any[];
-};
+type Platform = 'WEB' | 'ANDROID_WEB' | 'IOS_WEB' | 'ANDROID_AMP' | 'IOS_AMP';
 
-type ApiResponse = {
-  domain: string;
+interface Report {
   timestamp: string;
-  results: Result[];
-};
-
-function LastRunPage() {
-    const searchParams = useSearchParams();
-    const [data, setData] = useState<any>(null);
-  
-    useEffect(() => {
-      const domain = searchParams.get('domain') || 'LM';
-      fetch(`http://10.136.172.151:8090/api/v1/hygiene/report/get-recent?domain=${domain}`)
-        .then(res => res.json())
-        .then(setData)
-        .catch(async () => {
-          const res = await fetch('/sample.json');
-          const sampleData = await res.json();
-          setData(sampleData);
-        });
-    }, [searchParams]);
-  
-    if (!data) return <div>Loading data...</div>;
-
-  return (
-    <div style={{ padding: '20px' }}>
-      <h1>Last Run Report for {data.domain}</h1>
-      <table border={1} cellPadding={10} cellSpacing={0}>
-        <thead>
-          <tr>
-            <th>Story URL</th>
-            <th>Total Ad Units</th>
-            <th>Total Single Card</th>
-            <th>Total Multi Product Carousels</th>
-            <th>Number of Cards Not Rendered in Top Widget</th>
-            <th>Number of Single Cards Not Rendered</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.results.map((item:any) => (
-            <tr key={item.storyURL}>
-              <td>
-                <a href={item.storyURL} target="_blank" rel="noopener noreferrer">
-                  {item.storyURL}
-                </a>
-              </td>
-              <td>{item.totalAdUnits}</td>
-              <td>{item.totalSingleCards}</td>
-              <td>{item.totalMultiProductCarousel}</td>
-              <td>{item.topWidgetCardsNotRendered?.length}</td>
-              <td>{item.singleCardsNotRendered?.length}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  results: any[];
 }
 
-export default function LastRunPageWrapper() {
-    return (
-      <Suspense fallback={<div>Loading reports, please wait...</div>}>
-        <LastRunPage />
-      </Suspense>
-    );
-  }
+const platforms: Platform[] = [
+  'WEB',
+  'ANDROID_WEB',
+  'IOS_WEB',
+  'ANDROID_AMP',
+  'IOS_AMP',
+];
+
+export default function LastRunPage() {
+  const searchParams = useSearchParams();
+  const domain = (searchParams.get('domain') || 'LM').toUpperCase();
+
+  const [reports, setReports] = useState<Record<Platform, Report | null>>({
+    WEB: null,
+    ANDROID_WEB: null,
+    IOS_WEB: null,
+    ANDROID_AMP: null,
+    IOS_AMP: null,
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const updateFaviconAndTheme = () => {
+      const favicon = `/${domain}.ico`;
+      const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (link) link.href = favicon;
+      document.documentElement.setAttribute('data-theme', domain);
+    };
+
+    const fetchReports = async () => {
+      setLoading(true);
+      const fetches = platforms.map(async (platform) => {
+        try {
+          const res = await fetch(
+            `https://cmsadminapi.htmedia.in/api/v1/hygiene/report/get-recent?domain=${domain}&platform=${platform}`
+          );
+          const json = await res.json();
+          return { platform, report: json };
+        } catch {
+          return { platform, report: null };
+        }
+      });
+
+      const results = await Promise.all(fetches);
+      const reportMap: Record<Platform, Report | null> = {
+        WEB: null,
+        ANDROID_WEB: null,
+        IOS_WEB: null,
+        ANDROID_AMP: null,
+        IOS_AMP: null,
+      };
+
+      results.forEach(({ platform, report }) => {
+        reportMap[platform as Platform] = report;
+      });
+
+      setReports(reportMap);
+      setLoading(false);
+    };
+
+    updateFaviconAndTheme();
+    fetchReports();
+  }, [domain]);
+
+  return (
+    <main>
+      <Header domain={domain} />
+      <nav className="platform-nav">
+        Go To: 
+        {platforms.map((platform) => (
+          <a key={platform} href={`#${platform}`} className="platform-link">
+            {platform.replace('_', ' ').toLowerCase().replace("amp", "AMP").replace("ios", "iOS")}
+          </a>
+        ))}
+      </nav>
+      {loading ? (
+        <div className="loading">Loading results...</div>
+      ) : (
+        platforms.map((platform) => (
+          <PlatformWidget
+            key={platform}
+            platform={platform}
+            report={reports[platform]}
+          />
+        ))
+      )}
+    </main>
+  );
+}

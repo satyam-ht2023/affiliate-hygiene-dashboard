@@ -16,6 +16,7 @@
     "next": "15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-json-pretty": "^2.2.0",
     "touch-cli": "^0.0.1"
   },
   "devDependencies": {
