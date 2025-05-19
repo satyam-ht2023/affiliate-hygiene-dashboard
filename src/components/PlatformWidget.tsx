@@ -18,11 +18,16 @@ export default function PlatformWidget({ platform, report }: Props) {
     if (!report) return null;
 
     const { timestamp, results } = report;
+    const hasAnyRenderedWithTagIssue = (list: { rendered?: boolean }[] | undefined): boolean =>
+        list?.some(item => item?.rendered === true) ?? false;
+
+    console.log(results[5])
+    console.log(hasAnyRenderedWithTagIssue(results[5]?.topWidgetCardsTagAndCTAIssue))
 
     return (
         <div className="widget" id={platform}>
             <h2>
-                <img src={`/affiliate-hygiene-dashboard/${platform}.png`} alt={`${platform} logo`} width={64} height={64} />
+                <img src={`./${platform}.png`} alt={`${platform} logo`} width={64} height={64} />
                 <div>
                     {platform.replace('_', ' ').toLowerCase().replace("amp", "AMP").replace("ios", "iOS")}
                     <div className='date'>{new Date(timestamp).toLocaleString()}</div>
@@ -62,11 +67,11 @@ export default function PlatformWidget({ platform, report }: Props) {
                                     </td>
                                     <td>
                                         {
-                                            row?.topWidgetCardsTagAndCTAIssue?.length > 0 ||
-                                                row?.singleCardsTagAndCTAIssue?.length > 0 ||
-                                                row?.clickHereToBuyWithWrongTagsOrCTAIssue > 0 ||
+                                            hasAnyRenderedWithTagIssue(row?.topWidgetCardsTagAndCTAIssue) ||
+                                                hasAnyRenderedWithTagIssue(row?.singleCardsTagAndCTAIssue) ||
+                                                hasAnyRenderedWithTagIssue(row?.clickHereToBuyWithWrongTagsOrCTAIssue) ||
                                                 row?.multiProductCarouselFailures?.some(
-                                                    (item: any) => Array.isArray(item.cardsTagAndCTAIssue) && item.cardsTagAndCTAIssue.length > 0
+                                                    (item: any) => Array.isArray(item.cardsTagAndCTAIssue) && hasAnyRenderedWithTagIssue(item.cardsTagAndCTAIssue)
                                                 )
                                                 ? <span className='ErrorText'>Yes</span> : <span className='FineText'>No</span>
                                         }
